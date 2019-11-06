@@ -160,7 +160,7 @@ public class MappedFileQueue {
 
                 try {
                     MappedFile mappedFile = new MappedFile(file.getPath(), mappedFileSize);
-
+                    // TODO: 2019/11/6 为什么有如下的配置？文件直接写满了？
                     mappedFile.setWrotePosition(this.mappedFileSize);
                     mappedFile.setFlushedPosition(this.mappedFileSize);
                     mappedFile.setCommittedPosition(this.mappedFileSize);
@@ -200,13 +200,13 @@ public class MappedFileQueue {
         }
 
         if (mappedFileLast != null && mappedFileLast.isFull()) {
+            // 如果满了，那么 起始点 就是 上一个 Mapped 文件的起始 + 文件大小
             createOffset = mappedFileLast.getFileFromOffset() + this.mappedFileSize;
         }
 
         if (createOffset != -1 && needCreate) {
             String nextFilePath = this.storePath + File.separator + UtilAll.offset2FileName(createOffset);
-            String nextNextFilePath = this.storePath + File.separator
-                + UtilAll.offset2FileName(createOffset + this.mappedFileSize);
+            String nextNextFilePath = this.storePath + File.separator + UtilAll.offset2FileName(createOffset + this.mappedFileSize);
             MappedFile mappedFile = null;
 
             if (this.allocateMappedFileService != null) {
