@@ -127,11 +127,12 @@ public abstract class ServiceThread implements Runnable {
     }
 
     protected void waitForRunning(long interval) {
+        // 为 true 说明 writeList 被写入过数据
         if (hasNotified.compareAndSet(true, false)) {
             this.onWaitEnd();
             return;
         }
-
+        // 没有 writeList 被写入过，我们就等待
         //entry to wait
         waitPoint.reset();
 

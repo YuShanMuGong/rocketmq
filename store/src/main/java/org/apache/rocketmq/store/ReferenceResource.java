@@ -26,6 +26,7 @@ public abstract class ReferenceResource {
 
     public synchronized boolean hold() {
         if (this.isAvailable()) {
+            // 第一次调用返回 true
             if (this.refCount.getAndIncrement() > 0) {
                 return true;
             } else {
@@ -54,6 +55,7 @@ public abstract class ReferenceResource {
     }
 
     public void release() {
+        // 正常的此时应该是 -1
         long value = this.refCount.decrementAndGet();
         if (value > 0)
             return;

@@ -318,7 +318,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             response.setCode(ResponseCode.SYSTEM_ERROR);
         response.setRemark(String.format("broker unable to service, until %s", UtilAll.timeMillisToHumanString2(startTimstamp)));
         return response;
-    }
+        }
 
         response.setCode(-1);
         super.msgCheck(ctx, requestHeader, response);

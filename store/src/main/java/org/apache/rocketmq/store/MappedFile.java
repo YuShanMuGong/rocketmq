@@ -205,8 +205,9 @@ public class MappedFile extends ReferenceResource {
         int currentPos = this.wrotePosition.get();
 
         if (currentPos < this.fileSize) {
+            // 这里的 writeBuffer 的 Position 始终是 0 ！
+            // TODO: 2019-11-06 为什么要这么设计？不直接修改  writeBuffer OR mappedByteBuffer ？
             ByteBuffer byteBuffer = writeBuffer != null ? writeBuffer.slice() : this.mappedByteBuffer.slice();
-            // TODO: 2019/11/6 移动 position?
             byteBuffer.position(currentPos);
             AppendMessageResult result;
             if (messageExt instanceof MessageExtBrokerInner) {
@@ -342,6 +343,7 @@ public class MappedFile extends ReferenceResource {
         int flush = this.flushedPosition.get();
         int write = getReadPosition();
 
+        // 满了，自然能够去写数据
         if (this.isFull()) {
             return true;
         }
@@ -349,7 +351,7 @@ public class MappedFile extends ReferenceResource {
         if (flushLeastPages > 0) {
             return ((write / OS_PAGE_SIZE) - (flush / OS_PAGE_SIZE)) >= flushLeastPages;
         }
-
+        // 只要写入 大于 Flush 就能刷盘了
         return write > flush;
     }
 
@@ -419,6 +421,7 @@ public class MappedFile extends ReferenceResource {
 
     @Override
     public boolean cleanup(final long currentRef) {
+        // 没有 shutdown 就不去释放 MappedFile
         if (this.isAvailable()) {
             log.error("this file[REF:" + currentRef + "] " + this.fileName
                 + " have not shutdown, stop unmapping.");
@@ -431,6 +434,7 @@ public class MappedFile extends ReferenceResource {
             return true;
         }
 
+        // 清理 mappedByteBuffer
         clean(this.mappedByteBuffer);
         TOTAL_MAPPED_VIRTUAL_MEMORY.addAndGet(this.fileSize * (-1));
         TOTAL_MAPPED_FILES.decrementAndGet();
