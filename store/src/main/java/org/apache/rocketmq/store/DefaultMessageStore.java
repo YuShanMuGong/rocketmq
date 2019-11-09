@@ -150,6 +150,7 @@ public class DefaultMessageStore implements MessageStore {
         this.indexService.start();
 
         this.dispatcherList = new LinkedList<>();
+        // TODO: 2019-11-09 ?
         this.dispatcherList.addLast(new CommitLogDispatcherBuildConsumeQueue());
         this.dispatcherList.addLast(new CommitLogDispatcherBuildIndex());
 
@@ -1293,7 +1294,9 @@ public class DefaultMessageStore implements MessageStore {
 
     private boolean loadConsumeQueue() {
         File dirLogic = new File(StorePathConfigHelper.getStorePathConsumeQueue(this.messageStoreConfig.getStorePathRootDir()));
+        // 所有的 TOPIC 文件夹
         File[] fileTopicList = dirLogic.listFiles();
+
         if (fileTopicList != null) {
 
             for (File fileTopic : fileTopicList) {

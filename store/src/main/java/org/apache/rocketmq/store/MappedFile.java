@@ -206,7 +206,6 @@ public class MappedFile extends ReferenceResource {
 
         if (currentPos < this.fileSize) {
             // 这里的 writeBuffer 的 Position 始终是 0 ！
-            // TODO: 2019-11-06 为什么要这么设计？不直接修改  writeBuffer OR mappedByteBuffer ？
             ByteBuffer byteBuffer = writeBuffer != null ? writeBuffer.slice() : this.mappedByteBuffer.slice();
             byteBuffer.position(currentPos);
             AppendMessageResult result;
