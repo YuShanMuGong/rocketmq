@@ -101,6 +101,7 @@ public class MappedFileQueue {
         return mfs;
     }
 
+    // 设置文件的 起始写位置
     public void truncateDirtyFiles(long offset) {
         List<MappedFile> willRemoveFiles = new ArrayList<MappedFile>();
 

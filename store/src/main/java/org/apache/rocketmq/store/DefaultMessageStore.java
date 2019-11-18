@@ -193,6 +193,7 @@ public class DefaultMessageStore implements MessageStore {
                 this.storeCheckpoint =
                     new StoreCheckpoint(StorePathConfigHelper.getStoreCheckpoint(this.messageStoreConfig.getStorePathRootDir()));
 
+                // Index 是如何工作的？
                 this.indexService.load(lastExitOK);
 
                 this.recover(lastExitOK);
@@ -216,6 +217,7 @@ public class DefaultMessageStore implements MessageStore {
      */
     public void start() throws Exception {
 
+        // 确保同时只有一个进程在启动
         lock = lockFile.getChannel().tryLock(0, 1, false);
         if (lock == null || lock.isShared() || !lock.isValid()) {
             throw new RuntimeException("Lock failed,MQ already started");
@@ -231,6 +233,7 @@ public class DefaultMessageStore implements MessageStore {
              * 4. Make sure the fall-behind messages to be dispatched before starting the commitlog, especially when the broker role are automatically changed.
              */
             long maxPhysicalPosInLogicQueue = commitLog.getMinOffset();
+            // 获取 ConsumerQueue 中最大的 物理 Offset
             for (ConcurrentMap<Integer, ConsumeQueue> maps : this.consumeQueueTable.values()) {
                 for (ConsumeQueue logic : maps.values()) {
                     if (logic.getMaxPhysicOffset() > maxPhysicalPosInLogicQueue) {
@@ -1301,7 +1304,7 @@ public class DefaultMessageStore implements MessageStore {
 
             for (File fileTopic : fileTopicList) {
                 String topic = fileTopic.getName();
-
+                // 获取这个 TOPIC 下面所有的 ConsumerQueue
                 File[] fileQueueIdList = fileTopic.listFiles();
                 if (fileQueueIdList != null) {
                     for (File fileQueueId : fileQueueIdList) {
@@ -1335,8 +1338,10 @@ public class DefaultMessageStore implements MessageStore {
         long maxPhyOffsetOfConsumeQueue = this.recoverConsumeQueue();
 
         if (lastExitOK) {
+            //
             this.commitLog.recoverNormally(maxPhyOffsetOfConsumeQueue);
         } else {
+            // 从异常文件中恢复
             this.commitLog.recoverAbnormally(maxPhyOffsetOfConsumeQueue);
         }
 
@@ -1362,6 +1367,10 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     * 恢复 所有的 ConsumeQueue ,并且返回最大的 Offset
+     * @return
+     */
     private long recoverConsumeQueue() {
         long maxPhysicOffset = -1;
         for (ConcurrentMap<Integer, ConsumeQueue> maps : this.consumeQueueTable.values()) {
@@ -1778,6 +1787,7 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    // 作用就是定期的 将 消息写入到ConsumerQueue
     class ReputMessageService extends ServiceThread {
 
         private volatile long reputFromOffset = 0;
